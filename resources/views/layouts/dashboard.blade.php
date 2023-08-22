@@ -11,8 +11,6 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
-    <!-- Scripts -->
-    <link href="img/Rotaract Club of Balaju.png" rel="icon">
 
     <link href="https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
 
@@ -69,7 +67,7 @@
                 <div class="navbar-header" data-logobg="skin6">
                     <a class="navbar-brand ms-4" href="/home">
                         <b class="logo-icon">
-                            <img src="img/RCB white.png" alt="Flight Management" class="dark-logo" height="60px"
+                            <img src="images/logo.png" alt="Flight Management" class="dark-logo" height="60px"
                                 width="80px;" />
                         </b>
                     </a>

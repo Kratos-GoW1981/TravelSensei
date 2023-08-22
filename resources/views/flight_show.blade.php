@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+
+
+<script src="https://js.stripe.com/v3/"></script>
+
     @if (!empty($flight))
 
 
@@ -30,29 +34,31 @@
                         </th>
                         <th style="width:400px; height:400px; padding:50px">
                             @if (!empty($flight))
-                                <form action="/flights/{{ $flight->id }}/book" method="post">
-                                    seats:<span class="seats"></span>
-                                    <br>
-                                    total:<span class="total"></span>
-                                    <br>
-                                    @foreach ($seat as $key => $s)
-                                        @if ($key % 4 == 0)
-                                        @endif
-                                        <span
-                                            style=" margin:7px;padding:7px;display:inline-block;
-                                {{ $s->status == 1 ? 'background-color:red' : 'background-color:green' }}">
-                                            <input type="checkbox"
-                                                style=" height: 30px;
-                                width: 30px;"
-                                                name="seat[]" value="{{ $s->seat_number }}"
-                                                @if ($s->status == 1) class="hovertext" onclick="return false;" disabled="disabled" @endif
-                                                data-hover=" @if (auth()->user()->is_admin == 1) @if (($user = App\Models\User::where('id', $s->user_id)->get()->first()) != null)
-                                    {{ $user->name }}
-                                    {{ $user->email }} @endif
-                                @endif">
-                                        </span>
-                                    @endforeach
-                                </form>
+                            <form action="/flights/{{ $flight->id }}/book" method="post">
+                                seats:<span class="seats"></span>
+                                <br>
+                                total:<span class="total"></span>
+                                <br>
+                                @foreach ($seat as $key => $s)
+                                    @if ($key % 4 == 0)
+                                    @endif
+                                    <span
+                                        style="margin: 7px; padding: 7px; display: inline-block; {{ $s->status == 1 ? 'background-color:red' : 'background-color:green' }}">
+                                        <input type="checkbox"
+                                            style="height: 30px; width: 30px;"
+                                            name="seat[]" value="{{ $s->seat_number }}"
+                                            @if ($s->status == 1) class="hovertext" onclick="return false;" disabled="disabled" @endif
+                                            data-hover=" @if (auth()->user()->is_admin == 1) @if (($user = App\Models\User::where('id', $s->user_id)->get()->first()) != null)
+                            {{ $user->name }}
+                            {{ $user->email }} @endif
+                            @endif">
+                                        <br>
+                                        {{ $key + 1 }}
+                                    </span>
+                                @endforeach
+                            </form>
+                            
+                            
                             @endif
                         </th>
 
@@ -70,33 +76,33 @@
                                         <div class="d-flex flex-column">
                                             <p class="text mb-1">Person Name</p>
                                             <input class="form-control mb-3" type="text" placeholder="Name"
-                                                value="{{ auth()->user()->name }}">
+                                                value="{{ auth()->user()->name }}" required>
                                         </div>
                                     </div>
 
                                     <div class="col-12">
                                         <div class="d-flex flex-column">
                                             <p class="text mb-1">Card Number</p>
-                                            <input class="form-control mb-3" type="number" placeholder="1234 5678 435678">
+                                            <input id="cardNumber" class="form-control mb-3" type="number" placeholder="1234 5678 435678" required>
                                         </div>
                                     </div>
 
                                     <div class="col-6">
                                         <div class="d-flex flex-column">
                                             <p class="text mb-1">Expiry</p>
-                                            <input class="form-control mb-3" type="date" placeholder="MM/YYYY">
+                                            <input  id="expiry" class="form-control mb-3" type="date" placeholder="MM/YYYY"  min="{{ date('Y-m-d') }}" required>
                                         </div>
                                     </div>
 
                                     <div class="col-6">
                                         <div class="d-flex flex-column">
                                             <p class="text mb-1">CVV/CVC</p>
-                                            <input class="form-control mb-3 pt-2 " type="password" placeholder="***">
+                                            <input class="form-control mb-3 pt-2 " type="password" placeholder="***" required maxlength="3">
                                         </div>
                                     </div>
 
                                     <div class="col-12">
-                                        <button class=" btn btn-success btn-lg" type="submit "
+                                        <button  id="payButton"class=" btn btn-success btn-lg" type="submit "
                                             style="margin-top: 140px;">Pay:<span class="total"></span>
                                         </button>
 
@@ -110,18 +116,54 @@
 
                     </tr>
                 </thead>
-            </table>
-
+            </table>           
             <script>
-                $('.btn').click(function() {
-                    swal({
-                        title: "Congratulations!",
-                        text: "You payment has been maid successfully",
-                        icon: "success",
-                        button: "Back",
+                document.addEventListener("DOMContentLoaded", function() {
+                    const payButton = document.getElementById('payButton');
+                    payButton.addEventListener('click', async function() {
+                        // Get the input values
+                        const cardNumberInput = document.getElementById('cardNumber');
+                        const expiryInput = document.getElementById('expiry');
+            
+                        // Validate the inputs
+                        if (!cardNumberInput.value || !expiryInput.value) {
+                            // Inputs are empty, show an error message
+                            swal({
+                                title: "Validation Error",
+                                text: "Please fill in all required fields.",
+                                icon: "error",
+                                button: "OK",
+                            });
+                            return; // Exit the function
+                        }
+            
+                        // Simulate payment success (you should replace this with your actual payment logic)
+                        const paymentSuccessful = true; // Set this to true if payment is successful
+            
+                        if (paymentSuccessful) {
+                            // Payment succeeded, show success message
+                            swal({
+                                title: "Congratulations!",
+                                text: "Your payment has been made successfully",
+                                icon: "success",
+                                button: "Back",
+                            });
+                        } else {
+                            // Payment failed, show error message
+                            swal({
+                                title: "Payment Error",
+                                text: "An error occurred during payment. Please try again.",
+                                icon: "error",
+                                button: "OK",
+                            });
+                        }
                     });
                 });
             </script>
+
+
+            
+            
     @endif
     <!-- @if (!empty($flight))
 

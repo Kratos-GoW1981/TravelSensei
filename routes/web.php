@@ -77,3 +77,23 @@ Route::get('/travel', [App\Http\Controllers\HomeController::class, 'travel'])->n
 
 Route::get('/invoice/{flight}', [App\Http\Controllers\FlightController::class, 'invoice'])->name('invoice.show');
 
+
+
+
+
+
+//stripe
+//Payment
+Route::get('stripe',[App\Http\Controllers\FlightController::class,'paymentStripe'])->name('addmoney.paymentstripe');
+Route::post('add-money-stripe',[App\Http\Controllers\FlightController::class,'postPaymentStripe'])->name('addmoney.stripe');
+Route::get('/payment', [App\Http\Controllers\PaymentController::class, 'index'])->name('payment.index');
+Route::post('/payment/process', [App\Http\Controllers\PaymentController::class, 'process'])->name('payment.process');
+
+
+Route::post('/update-default-payment-method', [App\Http\Controllers\PaymentController::class, 'updateDefaultPaymentMethod']);
+
+Route::post('/process-payment', [App\Http\Controllers\PaymentController::class, 'processPayment']);
+
+
+
+Route::get('/payment/success', [App\Http\Controllers\PaymentController::class, 'success'])->name('payment.success');

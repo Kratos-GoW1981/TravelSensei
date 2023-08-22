@@ -110,11 +110,11 @@
                         <div class="col-md-12">
                             <div class="header_information">
                                 <ul>
-                                    <li><img src="{{ asset('images/1.png') }} " alt="#" /> Kalanki, Kathmandu,
+                                    <li><img src="{{ asset('images/1.png') }} " alt="#" /> Kathmandu
                                         Nepal</li>
-                                    <li><img src="{{ asset('images/2.png') }} " alt="#" /> +977 9812721931
+                                    <li><img src="{{ asset('images/2.png') }} " alt="#" /> +977 9868834696
                                     </li>
-                                    <li><img src="{{ asset('images/3.png') }} " alt="#" /> sanish@gmail.com
+                                    <li><img src="{{ asset('images/3.png') }} " alt="#" /> travelsensei@gmail.com
                                     </li>
                                 </ul>
                             </div>
