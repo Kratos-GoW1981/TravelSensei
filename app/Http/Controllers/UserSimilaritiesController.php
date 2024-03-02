@@ -52,28 +52,30 @@ class UserSimilaritiesController extends Controller
     
 
     public function generateRecommendations($userId)
-    {
-        $user = User::find($userId);
-        $userSimilarities = DB::table('user_similarities')
-            ->where('user_id', $user->id)
-            ->pluck('similarities', 'similar_user_id');
+{
+    $user = User::find($userId);
+    $userSimilarities = DB::table('user_similarities')
+        ->where('user_id', $user->id)
+        ->pluck('similarities', 'similar_user_id');
 
-        $recommendedFlights = [];
-        foreach ($userSimilarities as $similarUserId => $similarity) {
-            $similarUser = User::find($similarUserId);
-            if ($similarUser) {
-                $similarUserFlights = $similarUser->bookedFlights()->pluck('seats.flight_id')->toArray();
-                $unseenFlights = array_diff($similarUserFlights, $user->bookedFlights()->pluck('seats.flight_id')->toArray());
-                $recommendedFlights = array_merge($recommendedFlights, $unseenFlights);
-            }
-        }
+    $mostRecentDestination = $user->bookedFlights()
+        ->orderBy('date', 'desc')
+        ->pluck('to')
+        ->first();
 
-        $topN = 10;
-        $recommendedFlights = array_slice(array_unique($recommendedFlights), 0, $topN);
-
-        // Assuming you have a Flight model to fetch flight details
-        $recommendedFlightsData = Flight::whereIn('id', $recommendedFlights)->get();
-        return $recommendedFlightsData;
-        // return view('calculate-similarities', ['recommendedFlights' => $recommendedFlightsData]);
+    if (!$mostRecentDestination) {
+        // Handle case where user hasn't traveled yet
+        return [];
     }
+
+    $recommendedFlightsData = Flight::where('from', $mostRecentDestination)
+        ->where('to', '<>', $mostRecentDestination) // Exclude flights returning to the same destination
+        ->get();
+
+    return $recommendedFlightsData;
+}
+
+    
+    
+
 }

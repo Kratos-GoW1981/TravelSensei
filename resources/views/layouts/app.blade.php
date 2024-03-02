@@ -114,7 +114,8 @@
                                         Nepal</li>
                                     <li><img src="{{ asset('images/2.png') }} " alt="#" /> +977 9868834696
                                     </li>
-                                    <li><img src="{{ asset('images/3.png') }} " alt="#" /> travelsensei@gmail.com
+                                    <li><img src="{{ asset('images/3.png') }} " alt="#" />
+                                        travelsensei@gmail.com
                                     </li>
                                 </ul>
                             </div>
@@ -142,8 +143,11 @@
                                     <ul class="menu-area-main">
                                         <li class=""> <a href="/">Home</a> </li>
                                         <li><a href="/travel">Travel</a></li>
-                                        <li><a href="/placetovisit">Place to visit</a></li>
-                                        <li><a href="/calculateSimilarities">Similar Places</a></li>
+                                        {{-- <li><a href="/placetovisit">Place to visit</a></li> --}}
+                                        <li><a href="/calculateSimilarities">Traveler Choice</a></li>
+
+                                        <li><a href="{{ route('positive.emotion.flights') }}">Top-Reviewed</a></li>
+
 
                                         @guest
                                             @if (Route::has('login'))

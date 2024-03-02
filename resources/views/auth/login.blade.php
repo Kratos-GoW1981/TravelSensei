@@ -104,7 +104,7 @@
                                         <input type="submit" name="submit" value="Continue">
                                     </div>
                                     <div class="field">
-                                        <a class="ssolink" href="#">Use single sign-on (Google) instead</a>
+                                        {{-- <a class="ssolink" href="#">Use single sign-on (Google) instead</a> --}}
                                     </div>
                                 </form>
                             </div>

@@ -14,6 +14,8 @@
                             <input type="text" id="from" name="from" required>
                             <strong class="white">To: </strong>
                             <input type="text" id="to" name="to" required>
+                            <strong class="white">Date: </strong>
+                            <input type="date" id="date" name="date" required min="{{ date('Y-m-d') }}">
                             <div class="button_section"> <button class="main_bt" type="submit"
                                     href="#">Search</button> </div>
                             <!-- <button type="submit">search</button> -->

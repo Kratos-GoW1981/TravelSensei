@@ -4,9 +4,9 @@
     <div class="amazing">
         <div class="container">
             <div class="row">
-               
+
                 @if (!empty($sortedFlights))
-                @foreach ($sortedFlights as $flight)
+                    @foreach ($sortedFlights as $flight)
                         <div class="col-md-12">
                             <div class="amazing-box">
                                 <h2>{{ $flight->flight_name }}</h2>
@@ -31,4 +31,3 @@
         </div>
     </div>
 @endsection
-

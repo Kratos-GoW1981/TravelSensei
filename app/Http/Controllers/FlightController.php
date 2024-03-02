@@ -6,6 +6,8 @@ use App\Models\Flight;
 use App\Models\Seats;
 use App\Models\Rating;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Models\Review;
 
 
 
@@ -13,22 +15,21 @@ use Illuminate\Http\Request;
 
 class FlightController extends Controller
 {
-//book a seat
+    //book a seat
     public function book(Request $request, $flight)
     {
-        
+
         $flight = Flight::find($flight);
-        foreach($request->seat as $s){
-        $seat = $flight->seats()->where('seat_number', $s)->first();
-        if($seat->status == null){
-            $seat->user_id = auth()->user()->id; 
-            $seat->status = 1;
-            $seat->save();
-            $message = 'Seat booked successfully';
-        }
-        else{
-            $message = 'Seat already booked';
-        }
+        foreach ($request->seat as $s) {
+            $seat = $flight->seats()->where('seat_number', $s)->first();
+            if ($seat->status == null) {
+                $seat->user_id = auth()->user()->id;
+                $seat->status = 1;
+                $seat->save();
+                $message = 'Seat booked successfully';
+            } else {
+                $message = 'Seat already booked';
+            }
         }
         return redirect()->back()->with('message', $message);
     }
@@ -36,10 +37,10 @@ class FlightController extends Controller
     {
         //view flight_show page with flight data
 
-        $seat = Seats::where('flight_id',$flight->id)->get();
-        return view('flight_show', compact('flight','seat'));
+        $seat = Seats::where('flight_id', $flight->id)->get();
+        return view('flight_show', compact('flight', 'seat'));
     }
-    
+
     public function index()
     {
         //
@@ -51,55 +52,62 @@ class FlightController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function search(Request $request)
-{
-    $flights = Flight::where('from', 'like', $request->from)
-        ->where('to', 'like', $request->to)
-        ->where('date', '>=', date('Y-m-d'))
-        ->get();
-    
-    $flightsWithAvgRating = [];
+    {
 
-    foreach ($flights as $flight) {
-        $flightId = $flight->id;
-        
-        $ratings = Rating::where('flight_id', $flightId)->get();
-        
-        $totalRatings = count($ratings);
-        $sumRatings = $ratings->sum('rating'); // Assuming 'rating' is the column for ratings
-        
-        $averageRating = ($totalRatings > 0) ? ($sumRatings / $totalRatings) : 0;
-        
-        // Add flight ID and average rating to the result array
-        $flightsWithAvgRating[] = [
-            'flight_id' => $flightId,
-            'average_rating' => $averageRating,
-        ];
+        $formattedDate = Carbon::parse($request->date)->format('Y-m-d');
+
+        $flights = Flight::where('from', 'like', $request->from)
+            ->where('to', 'like', $request->to)
+            ->where('date', '>=', $formattedDate)
+            ->get();
+
+        $flightsWithAvgRating = [];
+
+        foreach ($flights as $flight) {
+            $flightId = $flight->id;
+
+            $ratings = Rating::where('flight_id', $flightId)->get();
+
+            $totalRatings = count($ratings);
+            $sumRatings = $ratings->sum('rating'); // Assuming 'rating' is the column for ratings
+
+            $averageRating = ($totalRatings > 0) ? ($sumRatings / $totalRatings) : 0;
+
+            // Add flight ID and average rating to the result array
+            $flightsWithAvgRating[] = [
+                'flight_id' => $flightId,
+                'average_rating' => $averageRating,
+            ];
+        }
+
+        // Sort flights with average ratings in descending order
+        usort($flightsWithAvgRating, function ($a, $b) {
+            return $b['average_rating'] - $a['average_rating'];
+        });
+
+        // Create an associative array to map flight IDs to their respective flights
+        $flightMap = [];
+        foreach ($flights as $flight) {
+            $flightMap[$flight->id] = $flight;
+        }
+
+        // Reorder the flights based on the sorted flight IDs from $flightsWithAvgRating
+        $sortedFlights = [];
+        foreach ($flightsWithAvgRating as $flightWithRating) {
+            $flightId = $flightWithRating['flight_id'];
+            $sortedFlights[] = $flightMap[$flightId];
+        }
+        // $reviewrecommend = Review::
+
+        // Now $sortedFlights contains flights sorted by average rating in descending order
+
+
+
+
+        return view('search', compact('sortedFlights', 'flightsWithAvgRating'));
     }
-    
-    // Sort flights with average ratings in descending order
-    usort($flightsWithAvgRating, function ($a, $b) {
-        return $b['average_rating'] - $a['average_rating'];
-    });
 
-    // Create an associative array to map flight IDs to their respective flights
-    $flightMap = [];
-    foreach ($flights as $flight) {
-        $flightMap[$flight->id] = $flight;
-    }
 
-    // Reorder the flights based on the sorted flight IDs from $flightsWithAvgRating
-    $sortedFlights = [];
-    foreach ($flightsWithAvgRating as $flightWithRating) {
-        $flightId = $flightWithRating['flight_id'];
-        $sortedFlights[] = $flightMap[$flightId];
-    }
-
-    // Now $sortedFlights contains flights sorted by average rating in descending order
-    
-    return view('search', compact('sortedFlights', 'flightsWithAvgRating'));
-}
-
-    
 
     /**
      * Store a newly created resource in storage.
@@ -110,7 +118,7 @@ class FlightController extends Controller
     public function store(Request $request)
     {
         // store flight data
-        $flight = new Flight;   
+        $flight = new Flight;
         $flight->total_seats = $request->total_seats;
         $flight->time = $request->time;
         $flight->date = $request->date;
@@ -131,7 +139,7 @@ class FlightController extends Controller
      * @param  \App\Models\Flight  $flight
      * @return \Illuminate\Http\Response
      */
-   
+
 
     /**
      * Show the form for editing the specified resource.
@@ -141,7 +149,7 @@ class FlightController extends Controller
      */
     public function edit(Flight $flight)
     {
-//redirect to edit page
+        //redirect to edit page
         return view('admin.flight_edit', compact('flight'));
     }
 
@@ -163,18 +171,17 @@ class FlightController extends Controller
         $flight->to = $request->to;
         $flight->price = $request->price;
         $flight->save();
-//delete all seats
+        //delete all seats
         $flight->seats()->delete();
 
-        for ($i=0; $i < $flight->total_seats; $i++) 
-            { 
-                $seat = new Seats;
-                $seat->flight_id = $flight->id;
-                $num = $flight->flight_name .'-'.($i+1);
-                $seat->seat_number = $num;
+        for ($i = 0; $i < $flight->total_seats; $i++) {
+            $seat = new Seats;
+            $seat->flight_id = $flight->id;
+            $num = $flight->flight_name . '-' . ($i + 1);
+            $seat->seat_number = $num;
 
-                $seat->save();
-            }
+            $seat->save();
+        }
         //redirect to the flights page
         return redirect('/home');
     }
@@ -192,74 +199,73 @@ class FlightController extends Controller
         //redirect to the flights page
         return redirect('/admin/flights');
     }
-    public function invoice(Flight $flight){
-    $seats = Seats::where('flight_id', $flight->id)->where('user_id',auth()->user()->id)->get();
-    return view('invoice',compact('seats','flight'));
-
+    public function invoice(Flight $flight)
+    {
+        $seats = Seats::where('flight_id', $flight->id)->where('user_id', auth()->user()->id)->get();
+        return view('invoice', compact('seats', 'flight'));
     }
-     
+
     public function paymentStripe()
     {
         return view('package');
     }
 
-    public function postPaymentStripe(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'card_no' => 'required|numeric|digits_between:12,19',
-            'ccExpiryMonth' => 'required',
-            'ccExpiryYear' => 'required',
-            'cvvNumber' => 'required',
-            'totalPrice' => 'required',
-        ]);
- 
-        $input = $request->except('_token');
- 
-        if ($validator->passes()) { 
-            $stripe = Stripe::setApiKey(env('STRIPE_SECRET'));
-             
-            try {
-                $token = $stripe->tokens()->create([
-                    'card' => [
-                        'number' => $request->get('card_no'),
-                        'exp_month' => $request->get('ccExpiryMonth'),
-                        'exp_year' => $request->get('ccExpiryYear'),
-                        'cvc' => $request->get('cvvNumber'),
-                    ],
-                ]);
+    // public function postPaymentStripe(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'card_no' => 'required|numeric|digits_between:12,19',
+    //         'ccExpiryMonth' => 'required',
+    //         'ccExpiryYear' => 'required',
+    //         'cvvNumber' => 'required',
+    //         'totalPrice' => 'required',
+    //     ]);
 
-                //money from database
-                // $moneyValue = 500;
- 
-                if (!isset($token['id'])) {
-                    return redirect()->route('stripe.add.money');
-                }
-                 
-                $charge = $stripe->charges()->create([
-                    'card' => $token['id'],
-                    'currency' => 'USD',
-                    'amount' => $request->totalPrice,
-                    'description' => 'wallet',
-                ]);
-                if($charge['status'] == 'succeeded') {
-                    dd($charge);
-                    return redirect()->route('addmoney.paymentstripe');
-                } else {
-                    return redirect()->route('addmoney.paymentstripe')->with('error','Money not add in wallet!');
-                }
-            } catch (Exception $e) {
-                return redirect()->route('addmoney.paymentstripe')->with('error',$e->getMessage());
-            } catch(\Cartalyst\Stripe\Exception\CardErrorException $e) {
-                return redirect()->route('addmoney.paymentstripe')->with('error',$e->getMessage());
-            } catch(\Cartalyst\Stripe\Exception\MissingParameterException $e) {
-                return redirect()->route('addmoney.paymentstripe')->with('error',$e->getMessage());
-            }
-        }
-    }
+    //     $input = $request->except('_token');
+
+    //     if ($validator->passes()) {
+    //         $stripe = Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    //         try {
+    //             $token = $stripe->tokens()->create([
+    //                 'card' => [
+    //                     'number' => $request->get('card_no'),
+    //                     'exp_month' => $request->get('ccExpiryMonth'),
+    //                     'exp_year' => $request->get('ccExpiryYear'),
+    //                     'cvc' => $request->get('cvvNumber'),
+    //                 ],
+    //             ]);
+
+    //             //money from database
+    //             // $moneyValue = 500;
+
+    //             if (!isset($token['id'])) {
+    //                 return redirect()->route('stripe.add.money');
+    //             }
+
+    //             $charge = $stripe->charges()->create([
+    //                 'card' => $token['id'],
+    //                 'currency' => 'USD',
+    //                 'amount' => $request->totalPrice,
+    //                 'description' => 'wallet',
+    //             ]);
+    //             if ($charge['status'] == 'succeeded') {
+    //                 dd($charge);
+    //                 return redirect()->route('addmoney.paymentstripe');
+    //             } else {
+    //                 return redirect()->route('addmoney.paymentstripe')->with('error', 'Money not add in wallet!');
+    //             }
+    //         } catch (Exception $e) {
+    //             return redirect()->route('addmoney.paymentstripe')->with('error', $e->getMessage());
+    //         } catch (\Cartalyst\Stripe\Exception\CardErrorException $e) {
+    //             return redirect()->route('addmoney.paymentstripe')->with('error', $e->getMessage());
+    //         } catch (\Cartalyst\Stripe\Exception\MissingParameterException $e) {
+    //             return redirect()->route('addmoney.paymentstripe')->with('error', $e->getMessage());
+    //         }
+    //     }s
+    // }
 }
 
 
 
 
 //stripe
- 
